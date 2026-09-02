@@ -1,0 +1,286 @@
+@import "./fonts.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ------------------------------------------------------------------
+   Palette sampled from the brand deck:
+   paper  = the studio backdrop of the packshots (so cut-outs sit seamlessly)
+   rose   = the Alicante Bouschet rose liquid
+   straw  = the branco liquid
+   vine   = the grape mark that gives the wordmark its "o"
+   One accent at a time. --accent is swapped per lote at runtime.
+------------------------------------------------------------------ */
+:root {
+  --paper: 242 242 242;
+  --panel: 232 232 231;
+  --ink: 18 18 20;
+  --muted: 86 86 90;
+  --hairline: 18 18 20;
+
+  --accent: 179 53 48;         /* text-safe rose, 5.4:1 on paper */
+  --accent-glow: 200 66 63;    /* decorative rose */
+  --accent-wash: 240 167 154;  /* decorative rose, light end of the gradient */
+
+  --fs-hero: clamp(2.6rem, 7.1vw, 6.25rem);
+  --fs-manifesto: clamp(1.5rem, 3.15vw, 2.9rem);
+  --fs-figure: clamp(3rem, 6.6vw, 5.5rem);
+  --fs-display: clamp(2.05rem, 5.2vw, 4.5rem);
+  --fs-title: clamp(1.45rem, 2.4vw, 2.15rem);
+  --fs-lead: clamp(1.05rem, 1.45vw, 1.375rem);
+  --fs-body: clamp(1rem, 1.02vw, 1.0625rem);
+  --fs-micro: clamp(0.7rem, 0.78vw, 0.8125rem);
+
+  --font-body: "Inter Variable";
+  --font-display: "Inter Tight Variable";
+  --font-mark: "Poppins Mark";
+
+  --shell-x: clamp(1.25rem, 5vw, 5.5rem);
+  --safe-l: env(safe-area-inset-left, 0px);
+  --safe-r: env(safe-area-inset-right, 0px);
+  --section-y: clamp(5.5rem, 12vh, 11rem);
+
+  color-scheme: light;
+}
+
+/* Lote accents. Applied by AccentProvider on <html data-accent="..."> so the
+   whole page, not just the card, adopts the colour of the lote being read. */
+[data-accent="rose"] {
+  --accent: 179 53 48;
+  --accent-glow: 200 66 63;
+  --accent-wash: 240 167 154;
+}
+[data-accent="branco"] {
+  --accent: 124 99 24;
+  --accent-glow: 195 154 60;
+  --accent-wash: 226 209 157;
+}
+[data-accent="vine"] {
+  --accent: 91 33 182;
+  --accent-glow: 139 92 246;
+  --accent-wash: 201 162 245;
+}
+@layer base {
+  * {
+    /* Accent-tinted, never pure black. */
+    --tw-ring-color: rgb(var(--accent));
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    /* Reserved so locking the scroll during the intro cannot shift the page. */
+    scrollbar-gutter: stable;
+    /* Removes the 300ms double-tap delay without disabling pinch zoom. */
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgb(var(--accent) / 0.18);
+  }
+
+  /* Native anchor jumps must clear the fixed nav. */
+  section[id] {
+    scroll-margin-top: 92px;
+  }
+
+  body {
+    background-color: rgb(var(--paper));
+    color: rgb(var(--ink));
+    font-family: var(--font-body), system-ui, sans-serif;
+    font-size: var(--fs-body);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
+  }
+
+  /* Lenis drives scrolling; this keeps native anchor jumps sane when it is off. */
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html:not(.lenis) { scroll-behavior: auto; }
+  }
+
+  ::selection {
+    background-color: rgb(var(--accent) / 0.16);
+    color: rgb(var(--ink));
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--accent));
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-display), system-ui, sans-serif;
+    font-weight: 500;
+    text-wrap: balance;
+  }
+
+  p { text-wrap: pretty; }
+
+  input {
+    background: transparent;
+    color: rgb(var(--ink));
+  }
+  input::placeholder { color: rgb(var(--muted) / 0.75); }
+}
+
+@layer components {
+  .shell {
+    width: 100%;
+    max-width: theme("maxWidth.shell");
+    margin-inline: auto;
+    padding-inline: calc(var(--shell-x) + var(--safe-l))
+      calc(var(--shell-x) + var(--safe-r));
+  }
+
+  .hairline {
+    border-color: rgb(var(--hairline) / 0.14);
+  }
+
+  .eyebrow {
+    font-size: var(--fs-micro);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--accent));
+  }
+
+  /* The liquid field behind the hero: three slow, offset radial washes.
+     Animated via transform only. */
+  .liquid-field::before,
+  .liquid-field::after {
+    content: "";
+    position: absolute;
+    inset: -25%;
+    border-radius: 50%;
+    filter: blur(70px);
+    opacity: 0.55;
+    will-change: transform;
+  }
+  .liquid-field::before {
+    background: radial-gradient(
+      45% 45% at 40% 45%,
+      rgb(var(--accent-glow) / 0.5) 0%,
+      rgb(var(--accent-wash) / 0.28) 45%,
+      transparent 72%
+    );
+    animation: drift-a 34s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+  .liquid-field::after {
+    background: radial-gradient(
+      40% 40% at 62% 58%,
+      rgb(var(--accent-wash) / 0.42) 0%,
+      transparent 70%
+    );
+    animation: drift-b 46s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: theme("zIndex.grain");
+    pointer-events: none;
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.42'/%3E%3C/svg%3E");
+  }
+
+  /* Organic blob mask for editorial media. */
+  .blob-mask {
+    border-radius: 46% 54% 58% 42% / 52% 46% 54% 48%;
+  }
+}
+
+/* Hero entrance runs in CSS, not JS, so the headline paints at first paint
+   instead of waiting for hydration. --d sets each element's delay. */
+@keyframes word-rise {
+  from { opacity: 0; transform: translate3d(0, 112%, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes soft-rise {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+.rise-word {
+  animation: word-rise 0.78s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d, 0s);
+}
+.rise-soft {
+  animation: soft-rise 0.68s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--d, 0s);
+}
+
+@keyframes drift-a {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  33% { transform: translate3d(6%, -5%, 0) scale(1.1); }
+  66% { transform: translate3d(-5%, 4%, 0) scale(0.96); }
+}
+@keyframes drift-b {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1.04); }
+  50% { transform: translate3d(-7%, 6%, 0) scale(0.94); }
+}
+
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+.marquee-track {
+  animation: marquee 42s linear infinite;
+  will-change: transform;
+}
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}
+
+/* The footer control stops the same continuous motion the media query does. */
+[data-motion="off"] .liquid-field::before,
+[data-motion="off"] .liquid-field::after,
+[data-motion="off"] .marquee-track {
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Reduced motion: everything decorative stops, content stays legible. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .liquid-field::before,
+  .liquid-field::after {
+    animation: none !important;
+  }
+  .marquee-track {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Nav glass, with an opaque fallback where backdrop-filter is unavailable or
+   the viewer has asked for reduced transparency. */
+.nav-glass {
+  background-color: rgb(var(--paper) / 0.72);
+  backdrop-filter: blur(18px) saturate(140%);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  .nav-glass { background-color: rgb(var(--paper)); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .nav-glass { background-color: rgb(var(--paper)); backdrop-filter: none; }
+}
+
+/* Native cursor is hidden only while the blob cursor is actually mounted. */
+.has-blob-cursor,
+.has-blob-cursor a,
+.has-blob-cursor button {
+  cursor: none;
+}
